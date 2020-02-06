@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Chat Rooms</title>
+    <script
+        src="https://code.jquery.com/jquery-3.4.1.js"
+        integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
+        crossorigin="anonymous"></script>
+</head>
+<body>
+    What chat room would you like to enter?<br/>
+    <ul id = 'chat-items'></ul>
+    <form id = "form">
+    <input type="text" id = "id_message" size="100"/><br/>
+    <input type="submit" value="Enter"/>
+    </form>
+    <script>
+        var loc = window.location
+        var formdata = $("#form")
+        var msgInput = $("#id_message")
+        var chatHolder = $("#chat-items")
+        var wsStart = 'ws://'
+        if(loc.protocol == 'https:'){
+            wsStart = 'wss://'
+        }
+        var endpoint = wsStart + loc.host + loc.pathname
+        var socket = new WebSocket(endpoint)
+        socket.onmessage = function(e){
+            console.log("message", e)
+            var chatData = JSON.parse(e.data)
+            chatHolder.append("<li>"+ chatData + "</li>")
+        }
+        
+        socket.onopen = function(e){
+            console.log("open", e)
+            formdata.submit(function(event){
+            var msgText = msgInput.val()
+            event.preventDefault()
+            chatHolder.append("<li>"+ msgText + "</li>")
+            var finalData = {
+                'message': msgText
+            }
+            socket.send(JSON.stringify(finalData))
+            msgInput.val('')
+            formdata[0].reset()
+        })
+        }
+        socket.onerror = function(e){
+            console.log("message", e)
+        }
+        socket.onclose = function(e){
+            console.log("message", e)
+        }
+    </script>
+</body>
+</html>
